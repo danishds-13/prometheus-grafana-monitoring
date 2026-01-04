@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -24,14 +26,19 @@ jobs:
             set -e
             echo "Deploying Prometheus + Grafana stack..."
 
-            # Ensure folder exists
+            # Ensure project folder exists
             mkdir -p ~/aws-prometheus-grafana
             cd ~/aws-prometheus-grafana
 
-            # Install / upgrade Docker + Compose plugin
+            # Install Docker + Compose v2 manually
             sudo apt update
+            sudo apt install -y docker.io curl
             sudo apt remove docker-compose -y || true
-            sudo apt install docker.io docker-compose-plugin -y
+            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '"' -f 4)
+            sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            docker --version
+            docker-compose --version
 
             # Initialize git if missing
             if [ ! -d ".git" ]; then
@@ -42,7 +49,7 @@ jobs:
             # Pull latest code
             git pull origin main || git fetch origin main && git reset --hard origin/main
 
-            # Restart stack safely
-            docker compose down || true
-            docker compose up -d
-            docker compose ps
+            # Start Docker stack safely
+            docker-compose down || true
+            docker-compose up -d
+            docker-compose ps
