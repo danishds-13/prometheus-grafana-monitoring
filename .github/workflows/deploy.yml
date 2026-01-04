@@ -19,13 +19,26 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}    # use your secret EC2_USER
+          username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
             set -e
             echo "Deploying Prometheus + Grafana stack..."
+
+            # Ensure folder exists
+            mkdir -p ~/aws-prometheus-grafana
             cd ~/aws-prometheus-grafana
-            git pull origin main
+
+            # Initialize git if missing
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin https://github.com/danishds-13/prometheus-grafana-monitoring.git
+            fi
+
+            # Pull latest code
+            git pull origin main || git fetch origin main && git reset --hard origin/main
+
+            # Start Docker stack
             docker compose up -d
             docker ps
