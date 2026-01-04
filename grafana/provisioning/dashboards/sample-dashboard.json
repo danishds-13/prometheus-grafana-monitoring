@@ -1,0 +1,21 @@
+{
+  "id": null,
+  "uid": "cpu-usage",
+  "title": "CPU Usage",
+  "tags": [],
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "CPU Usage",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"x":0,"y":0,"w":24,"h":9}
+    }
+  ]
+}
