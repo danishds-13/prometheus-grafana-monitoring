@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -30,6 +28,11 @@ jobs:
             mkdir -p ~/aws-prometheus-grafana
             cd ~/aws-prometheus-grafana
 
+            # Install / upgrade Docker + Compose plugin
+            sudo apt update
+            sudo apt remove docker-compose -y || true
+            sudo apt install docker.io docker-compose-plugin -y
+
             # Initialize git if missing
             if [ ! -d ".git" ]; then
               git init
@@ -39,6 +42,7 @@ jobs:
             # Pull latest code
             git pull origin main || git fetch origin main && git reset --hard origin/main
 
-            # Start Docker stack
+            # Restart stack safely
+            docker compose down || true
             docker compose up -d
-            docker ps
+            docker compose ps
