@@ -40,5 +40,5 @@ jobs:
             git pull origin main || git fetch origin main && git reset --hard origin/main
 
             # Start Docker stack
-            docker-compose up -d
+            docker compose up -d
             docker ps
